@@ -1,14 +1,11 @@
 class CoyoteState:
     def __init__(self, players, deck):
         self.players = players
-        self.eliminatedPlayers = []
         self.numPlayers = len(players)
+        self.peeks = [False] * self.numPlayers
+        self.eliminatedPlayers = []
         self.deck = deck
         self.guesses = []
-
-    def reset(self, deck):
-        self.guesses = []
-        self.deck = deck
 
     def playerWon(self, index):
         self.players[index].peeks = max(self.players[index].lives, self.players[index].peeks + 1)
@@ -21,5 +18,18 @@ class CoyoteState:
             self.players.remove(index)
             self.eliminatedPlayers.append(self.players[index])
 
-    def addGuess(self, guess):
-        self.guesses.append(guess)
+    def maxPossibleSum(self, playerIndex):
+
+    def getLegalActions(self, playerIndex):
+        # return current guess + 1 up to max possible value
+        return ['check', 'raise'] if not self.peeks[playerIndex] else ['raise']
+    
+    def nextState(self, playerIndex, action):
+        # apply action to state, return new state without mutation to current state
+        pass
+
+    def currentGuess(self):
+        return self.guesses[-1]
+
+    def isTerminal(self):
+        return self.currentGuess() == 'check'
