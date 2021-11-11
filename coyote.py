@@ -1,20 +1,20 @@
 from random import shuffle
 from cards import Card
 from coyoteState import CoyoteState
+import sys
 
 class Coyote:
     def __init__(self, players, roundsToPlay=0):
+        self.players = players
+        self.eliminatedPlayers = []
         self.rounds = 0
         self.roundsToPlay = roundsToPlay
         self.state = CoyoteState(players, self.dealCards(len(players)))
 
-    def dealCards(numPlayers):
+    def dealCards(self, numPlayers):
         cards = [c.value for c in Card]
         shuffle(cards)
         return cards[:numPlayers + 2]
-
-    def reset(self):
-        self.state.reset(self.dealCards(self.state.numPlayers))
 
     def playGame(self):
         while (self.rounds < self.roundsToPlay and self.roundsToPlay != 0) or self.state.numPlayers > 1:
@@ -27,40 +27,56 @@ class Coyote:
         indexCounter = 0
         while(roundPlaying):
             playerIndex = indexCounter % self.state.numPlayers
-            self.state = self.state.players[playerIndex].inputMove(self.state)
-            if self.state.guesses[-1] == 'check':
+            action, peek = self.players[playerIndex].inputMove(self.state)
+            prev_guess = self.state.currentGuess()
+            self.state = self.state.nextState(playerIndex, action, peek)
+            if self.state.isTerminal():
                 roundPlaying = False
-                if self.state.guesses[-2] > self.calculateLossValue(self):
-                    self.state.playerWon(playerIndex)
-                    self.state.playerLost((indexCounter - 1) % self.state.numPlayers)
+                if prev_guess > self.calculateLossValue():
+                    self.playerWon(playerIndex)
+                    self.playerLost((indexCounter - 1) % self.state.numPlayers)
                 else:
-                    self.state.playerLost(playerIndex)
-                    self.state.playerWon((indexCounter - 1) % self.state.numPlayers)
+                    self.playerLost(playerIndex)
+                    self.playerWon((indexCounter - 1) % self.state.numPlayers)
             indexCounter += 1
         self.rounds += 1
-        self.reset()
+        self.resetState()
+
+    def resetState(self):
+        self.state = CoyoteState(len(self.players), self.dealCards(len(self.players)))
 
     def calculateLossValue(self):
         sum = 0
         count = 0
-        hasMystery = Card.MYSTERY in self.deck[:self.state.numPlayers + 1]
-        hasMax0 = Card.MAX0 in self.deck[:self.state.numPlayers + 1]
+        hasMystery = Card.MYSTERY in self.state.deck[:self.state.numPlayers + 1]
+        hasMax0 = Card.MAX0 in self.state.deck[:self.state.numPlayers + 1]
         maxValue = float('-inf')
         length = self.state.numPlayers + 1
         
         for i in range(length if not hasMystery else length + 1):
-            if self.deck[count] == Card.MYSTERY or self.deck[count] == Card.MAX0:
+            if self.state.deck[count] == Card.MYSTERY or self.state.deck[count] == Card.MAX0:
                 pass
             else:
-                value = int(self.deck[i])
+                value = int(self.state.deck[i])
                 sum += value
                 maxValue = max(maxValue, value)
         return sum - (maxValue if hasMax0 else 0)
 
     def endGame(self):
         print(self)
-        pass
+        sys.exit()
 
     def __str__(self):
-        for i in len(self.players):
-            print(self.players[i], ": ", self.deck[i])
+        for i in range(self.state.numPlayers):
+            print(self.players[i], ": ", self.state.deck[i])
+
+    def playerWon(self, index):
+        self.players[index].peeks = max(self.players[index].lives, self.players[index].peeks + 1)
+        self.players[index].wins += 1
+
+    def playerLost(self, index):
+        self.players[index].lives -= 1
+        self.players[index].losses += 1
+        if self.players[index].lives == 0:
+            self.players.remove(index)
+            self.eliminatedPlayers.append(self.players[index])
