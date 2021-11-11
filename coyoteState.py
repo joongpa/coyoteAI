@@ -19,9 +19,11 @@ class CoyoteState:
             self.eliminatedPlayers.append(self.players[index])
 
     def maxPossibleSum(self, playerIndex):
+        pass
 
     def getLegalActions(self, playerIndex):
         # return current guess + 1 up to max possible value
+
         return ['check', 'raise'] if not self.peeks[playerIndex] else ['raise']
     
     def nextState(self, playerIndex, action):
