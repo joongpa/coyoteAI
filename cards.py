@@ -1,6 +1,8 @@
 from enum import Enum
 
 class Card(Enum):
+    MYSTERY = '?'
+    MAX0 = 'MAX0'
     NEG10 = '-10'
     NEG5 = '-5'
     ZERO = '0'
@@ -16,5 +18,3 @@ class Card(Enum):
     TEN = '10'
     FIFTEEN = '15'
     TWENTY = '20'
-    MYSTERY = '?'
-    MAX0 = 'MAX0'
