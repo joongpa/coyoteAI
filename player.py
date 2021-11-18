@@ -1,7 +1,7 @@
 from typing import Tuple
 
 class Player:
-    def __init__(self, playerIndex, playerName, lives=3, peeks=2):
+    def __init__(self, playerName, playerIndex=0, lives=3, peeks=2):
         self.lives = lives
         self.peeks = peeks
         self.wins = 0

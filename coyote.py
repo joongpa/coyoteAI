@@ -23,6 +23,7 @@ class Coyote:
         return cards[:numPlayers + 2]
 
     def playGame(self):
+        self.updateIndices()
         while (self.rounds < self.roundsToPlay and self.roundsToPlay != 0) or self.state.numPlayers > 1:
             print(f'Actual sum: {self.state.sum}')
             self.playRound()
@@ -35,9 +36,7 @@ class Coyote:
         indexCounter = self.startingPlayer
         while(roundPlaying):
             playerIndex = indexCounter % self.state.numPlayers
-            if playerIndex in self.eliminatedPlayers:
-                indexCounter += 1
-                continue
+            indexCounter += 1
             action, peek = self.players[playerIndex].inputMove(self.state)
             prev_guess = self.state.currentGuess()
             self.state = self.state.nextState(playerIndex, action, peek)
@@ -59,21 +58,16 @@ class Coyote:
         self.resetState()
 
     def resetState(self):
-        numPlayers = len(self.players) - len(self.eliminatedPlayers)
+        numPlayers = len(self.players)
         self.state = CoyoteState(numPlayers, self.dealCards(numPlayers))
         # self.sum = self.calculateLossValue()
 
     def game_summary(self):
-        winner = None
-        for winnerIndex in range(len(self.players)):
-            if winnerIndex not in self.eliminatedPlayers:
-                winner = self.players[winnerIndex]
-                break
+        winner = self.players[0]
         print(f'Rounds played: {self.rounds}')
         print(f'Winner: {winner.name()}\nWin rate: {winner.wins / self.rounds}')
-        for playerIndex in self.eliminatedPlayers:
-            player = self.players[playerIndex]
-            print(f'Player {player.name()}\'s win rate: {player.wins / self.rounds}')
+        for lost_player in self.eliminatedPlayers:
+            print(f'Player {lost_player.name()}\'s win rate: {lost_player.wins / self.rounds}')
 
     # def calculateLossValue(self):
     #     sum = 0
@@ -109,7 +103,15 @@ class Coyote:
         self.players[index].wins += 1
 
     def playerLost(self, index):
-        self.players[index].lives -= 1
-        self.players[index].losses += 1
+        lost_player = self.players[index]
+        lost_player.lives -= 1
+        lost_player.losses += 1
         if self.players[index].lives == 0:
-            self.eliminatedPlayers.append(index)
+            self.players.pop(index)
+            self.eliminatedPlayers.append(lost_player)
+            self.updateIndices()
+
+    def updateIndices(self):
+        for i in range(len(self.players)):
+            player = self.players[i]
+            player.playerIndex = i
