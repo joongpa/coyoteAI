@@ -7,7 +7,7 @@ import sys
 from player import Player
 
 class Coyote:
-    def __init__(self, players:list[Player], roundsToPlay=0):
+    def __init__(self, players: list, roundsToPlay=0):
         self.players = players
         self.eliminatedPlayers = []
         self.rounds = 0
@@ -63,6 +63,18 @@ class Coyote:
         self.state = CoyoteState(numPlayers, self.dealCards(numPlayers))
         # self.sum = self.calculateLossValue()
 
+    def game_summary(self):
+        winner = None
+        for winnerIndex in range(len(self.players)):
+            if winnerIndex not in self.eliminatedPlayers:
+                winner = self.players[winnerIndex]
+                break
+        print(f'Rounds played: {self.rounds}')
+        print(f'Winner: {winner.name()}\nWin rate: {winner.wins / self.rounds}')
+        for playerIndex in self.eliminatedPlayers:
+            player = self.players[playerIndex]
+            print(f'Player {player.name()}\'s win rate: {player.wins / self.rounds}')
+
     # def calculateLossValue(self):
     #     sum = 0
     #     if self.state.mysteryCard:
@@ -82,6 +94,7 @@ class Coyote:
 
     def endGame(self):
         print('Game over')
+        self.game_summary()
         sys.exit()
 
     def __str__(self):

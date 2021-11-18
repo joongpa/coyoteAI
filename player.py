@@ -1,3 +1,5 @@
+from typing import Tuple
+
 class Player:
     def __init__(self, playerIndex, playerName, lives=3, peeks=2):
         self.lives = lives
@@ -7,11 +9,12 @@ class Player:
         self.playerIndex = playerIndex
         self.playerName = playerName
 
-    def inputMove(coyoteState):
+    def inputMove(self, coyoteState) -> Tuple[str, bool]:
         pass
 
     def name(self):
-        pass
+        return self.playerName
 
     def __str__(self):
-        return f'{self.playerIndex + 1}: {self.playerName}: {self.lives} lives, {self.peeks} peeks, {self.wins} wins, {self.losses} losses'
+        return f'{self.playerIndex + 1}: {self.playerName}: {self.lives} lives, {self.peeks} peeks, ' \
+               f'{self.wins} wins, {self.losses} losses'

@@ -1,10 +1,11 @@
 from cards import Card
 
+
 class CoyoteState:
-    def __init__(self, numPlayers: int, deck: list, peeks:list[bool]=None, guesses:list=None):
+    def __init__(self, numPlayers: int, deck: list, peeks: list = None, guesses: list = None):
         # self.players = players
         self.numPlayers = numPlayers
-        self.peeks = peeks if peeks else [False]*numPlayers
+        self.peeks = peeks if peeks else [False] * numPlayers
         self.deck = deck
         self.playerCards = deck[:self.numPlayers + 1]
         self.mysteryCard = deck[self.numPlayers + 1] if Card.MYSTERY.value in self.playerCards else None
@@ -54,18 +55,20 @@ class CoyoteState:
                 sum += int(third)
         print(f'{playerIndex + 1}\'s highest possible sum: {sum}')
         return sum
-    
-    def _maxCardsPossible(self, playerIndex, peeked=False) -> str:
+
+    def _maxCardsPossible(self, playerIndex, peeked=False):
         endIndex = self.numPlayers + 1 if peeked else self.numPlayers
-        cards = [c.value for c in Card if c.value not in self.playerCards[:endIndex] or c.value == self.playerCards[playerIndex]]
+        cards = [c.value for c in Card if
+                 c.value not in self.playerCards[:endIndex] or c.value == self.playerCards[playerIndex]]
         return cards[-1], cards[-2], cards[-3]
 
     def _currentMaxCard(self, playerIndex: int, peeked=False) -> int:
         endIndex = self.numPlayers + 1 if peeked else self.numPlayers
-        cards = [int(c) for c in self.playerCards[:endIndex] if c != Card.MYSTERY.value and c != Card.MAX0.value and c!= self.playerCards[playerIndex]]
+        cards = [int(c) for c in self.playerCards[:endIndex] if
+                 c != Card.MYSTERY.value and c != Card.MAX0.value and c != self.playerCards[playerIndex]]
         return max(cards)
 
-    def getLegalActions(self, playerIndex: int) -> list[str]:
+    def getLegalActions(self, playerIndex: int) -> list:
         # return current guess + 1 up to max possible value
         if not self.guesses:
             cur_guess = -10
@@ -89,7 +92,7 @@ class CoyoteState:
         newState = CoyoteState(self.numPlayers, list(self.deck), new_peeks, new_guesses)
         newState.currentPlayerCanCheck = False
         return newState
-    
+
     def nextState(self, playerIndex, action, didPeek=False):
         # apply action to state, return new state without mutation to current state
         new_guesses = list(self.guesses)
