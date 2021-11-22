@@ -13,6 +13,9 @@ class CoyoteState:
         self.currentPlayerCanCheck = True
         self.sum = self.calculateLossValue()
 
+    def currentPlayer(self):
+        return (len(self.guesses) % self.numPlayers)
+
     def calculateLossValue(self):
         sum = 0
         if self.mysteryCard:
@@ -40,10 +43,10 @@ class CoyoteState:
         for i in range(length):
             if i == playerIndex:
                 sum += int(first)
-                print(f'{playerIndex + 1}\'s highest possible card: ', first)
+                # print(f'{playerIndex + 1}\'s highest possible card: ', first)
             elif self.deck[i] == Card.MYSTERY.value:
                 sum += int(second)
-                print('Highest possible mystery card: ', second)
+                # print('Highest possible mystery card: ', second)
             elif self.deck[i] == Card.MAX0.value:
                 sum -= 20
             else:
@@ -53,7 +56,7 @@ class CoyoteState:
                 sum += int(second)
             else:
                 sum += int(third)
-        print(f'{playerIndex + 1}\'s highest possible sum: {sum}')
+        # print(f'{playerIndex + 1}\'s highest possible sum: {sum}')
         return sum
 
     def _maxCardsPossible(self, playerIndex, peeked=False):
@@ -71,19 +74,19 @@ class CoyoteState:
     def getLegalActions(self, playerIndex: int) -> list:
         # return current guess + 1 up to max possible value
         if not self.guesses:
-            cur_guess = -10
             first = True
+            lower_guess = -15
+            upper_guess = self.maxPossibleSum(playerIndex)
         else:
             cur_guess = int(self.guesses[-1])
             first = False
-        lower_guess = cur_guess + 1
-        upper_guess = min(lower_guess + 20, self.maxPossibleSum(playerIndex) + 2)
-        actions = [str(i) for i in range(lower_guess, upper_guess)]
+            lower_guess = cur_guess + 1
+            upper_guess = min(lower_guess + 20, self.maxPossibleSum(playerIndex))
+        actions = [str(i) for i in range(lower_guess, max(lower_guess + 1, upper_guess + 1))]
 
         if self.currentPlayerCanCheck and not first:
             actions.append('check')
         return actions
-        # return ['check', 'raise'] if not self.peeks[playerIndex] else ['raise']
 
     def peekNextState(self, playerIndex):
         new_guesses = list(self.guesses)
@@ -100,13 +103,23 @@ class CoyoteState:
         new_peeks = list(self.peeks)
         if didPeek:
             new_peeks[playerIndex] = True
-        return CoyoteState(self.numPlayers, list(self.deck), new_peeks, new_guesses)
+        return CoyoteState(self.numPlayers, self.deck, new_peeks, new_guesses)
 
     def currentGuess(self):
         try:
             return self.guesses[-1]
         except IndexError:
             return None
+
+    def winnerAndLoser(self):
+        if self.isTerminal():
+            index = len(self.guesses) % self.numPlayers
+            if int(self.guesses[-2]) > self.sum:
+                return index, (index - 1) % self.numPlayers
+            else:
+                return (index - 1) % self.numPlayers, index
+        else:
+            return None, None
 
     def isTerminal(self):
         return self.currentGuess() == 'check'

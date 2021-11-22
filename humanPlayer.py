@@ -3,8 +3,8 @@ from coyoteState import CoyoteState
 from typing import Tuple
 
 class HumanPlayer(Player):
-    def __init__(self, playerIndex, playerName, lives=3, peeks=2):
-        super().__init__(playerIndex, playerName, lives, peeks)
+    def __init__(self, playerName, lives=3, peeks=2):
+        super().__init__(playerName, lives=lives, peeks=peeks)
 
     def inputMove(self, state: CoyoteState) -> Tuple[str, bool]:
         if not state.peeks[self.playerIndex]:

@@ -3,7 +3,7 @@ from typing import Tuple
 class Player:
     def __init__(self, playerName, playerIndex=0, lives=3, peeks=2):
         self.lives = lives
-        self.peeks = peeks
+        self.peeks = min(lives, peeks)
         self.wins = 0
         self.losses = 0
         self.playerIndex = playerIndex
