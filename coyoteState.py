@@ -1,9 +1,9 @@
 from cards import Card
-
+import random
+import itertools
 
 class CoyoteState:
     def __init__(self, numPlayers: int, deck: list, peeks: list = None, guesses: list = None):
-        # self.players = players
         self.numPlayers = numPlayers
         self.peeks = peeks if peeks else [False] * numPlayers
         self.deck = deck
@@ -11,27 +11,28 @@ class CoyoteState:
         self.mysteryCard = deck[self.numPlayers + 1] if Card.MYSTERY.value in self.playerCards else None
         self.guesses = guesses if guesses else []
         self.currentPlayerCanCheck = True
-        self.sum = self.calculateLossValue()
+        self.sum = CoyoteState.calculateSum(playerCards=self.playerCards, mysteryCard=self.mysteryCard)
 
     def currentPlayer(self):
         return (len(self.guesses) % self.numPlayers)
 
-    def calculateLossValue(self):
+    @staticmethod
+    def calculateSum(playerCards: list, mysteryCard=None):
         sum = 0
-        if self.mysteryCard:
-            hasMax0 = Card.MAX0.value in self.playerCards or Card.MAX0.value == self.mysteryCard
+        if mysteryCard:
+            hasMax0 = Card.MAX0.value in playerCards or Card.MAX0.value == mysteryCard
         else:
-            hasMax0 = Card.MAX0.value in self.playerCards
+            hasMax0 = Card.MAX0.value in playerCards
         maxValue = float('-inf')
 
-        for i in range(len(self.playerCards)):
-            if self.playerCards[i] == Card.MYSTERY.value:
-                if self.mysteryCard != Card.MAX0.value:
-                    sum += int(self.mysteryCard)
-            elif self.playerCards[i] == Card.MAX0.value:
+        for i in range(len(playerCards)):
+            if playerCards[i] == Card.MYSTERY.value:
+                if mysteryCard != Card.MAX0.value:
+                    sum += int(mysteryCard)
+            elif playerCards[i] == Card.MAX0.value:
                 pass
             else:
-                value = int(self.playerCards[i])
+                value = int(playerCards[i])
                 sum += value
                 maxValue = max(maxValue, value)
         return sum - (maxValue if hasMax0 else 0)
@@ -111,15 +112,42 @@ class CoyoteState:
         except IndexError:
             return None
 
-    def winnerAndLoser(self):
-        if self.isTerminal():
-            index = len(self.guesses) % self.numPlayers
-            if int(self.guesses[-2]) > self.sum:
-                return index, (index - 1) % self.numPlayers
-            else:
-                return (index - 1) % self.numPlayers, index
-        else:
-            return None, None
+    def countPossibleSums(self, playerIndex, value):
+        deckCopy = list(self.playerCards)
+        endIndex = self.numPlayers + 1 if self.peeks[playerIndex] else self.numPlayers
+        outsideCards = [c.value for c in Card if
+                 (c.value not in self.playerCards[:endIndex] 
+              or c.value == self.playerCards[playerIndex])
+              and c.value != Card.MYSTERY.value]
+        if not self.peeks[playerIndex]:
+            del deckCopy[self.numPlayers]
+        del deckCopy[playerIndex]
+        if self.mysteryCard and Card.MYSTERY.value in deckCopy:
+            deckCopy.remove(Card.MYSTERY.value)
+        unknowns = len(self.playerCards) - len(deckCopy)
+        perms = list(itertools.permutations(outsideCards, unknowns))
+        count = 0
+        length = len(perms)
+        for perm in perms:
+            newList = deckCopy + list(perm)
+            sum = self.calculateSum(newList)
+            if value <= sum:
+                count += 1
+        return count / length
+        
+
+    def winLossProbability(self, playerIndex):
+        guessPlayer = (self.currentPlayer() - 2) % self.numPlayers
+        checkPlayer = (self.currentPlayer() - 1) % self.numPlayers
+        lastGuess = int(self.guesses[-2])
+        if playerIndex != guessPlayer and playerIndex != checkPlayer:
+            return 0
+        elif playerIndex == guessPlayer:
+            prob = self.countPossibleSums(playerIndex, lastGuess) 
+            return prob
+        elif playerIndex == checkPlayer:
+            prob = self.countPossibleSums(playerIndex, lastGuess) 
+            return 1 - prob
 
     def isTerminal(self):
         return self.currentGuess() == 'check'
