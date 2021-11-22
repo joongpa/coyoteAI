@@ -63,9 +63,12 @@ class Coyote:
     def game_summary(self):
         winner = self.players[0]
         print(f'Rounds played: {self.rounds}')
-        print(f'Winner: {winner.name()}\nWin rate: {winner.wins / (1 + winner.losses)}')
+        if winner.losses != 0:
+            print(f'Winner: {winner.name()}\nWin rate: {winner.wins / winner.losses}')
+        else:
+            print(f'Winner: {winner.name()}\nWin rate: Perfect')
         for lost_player in self.eliminatedPlayers:
-            print(f'Player {lost_player.name()}\'s win rate: {lost_player.wins / (1 + lost_player.losses)}')
+            print(f'Player {lost_player.name()}\'s win rate: {lost_player.wins / lost_player.losses}')
 
     def endGame(self):
         print('Game over')

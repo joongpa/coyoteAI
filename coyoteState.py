@@ -83,10 +83,12 @@ class CoyoteState:
             first = False
             lower_guess = cur_guess + 1
             upper_guess = min(lower_guess + 20, self.maxPossibleSum(playerIndex))
-        actions = [str(i) for i in range(lower_guess, max(lower_guess + 1, upper_guess + 1))]
+        actions = [str(i) for i in range(lower_guess, max(lower_guess, upper_guess))]
 
         if self.currentPlayerCanCheck and not first:
             actions.append('check')
+        if not actions:
+            actions.append(str(lower_guess))
         return actions
 
     def peekNextState(self, playerIndex):
@@ -146,18 +148,8 @@ class CoyoteState:
             prob = self.countPossibleSums(playerIndex, lastGuess) 
             return prob
         elif playerIndex == checkPlayer:
-            prob = self.countPossibleSums(playerIndex, lastGuess) 
+            prob = self.countPossibleSums(playerIndex, lastGuess)
             return 1 - prob
-
-    def winnerAndLoser(self):
-        if self.isTerminal():
-            index = len(self.guesses) % self.numPlayers
-            if int(self.guesses[-2]) > self.sum:
-                return index, (index - 1) % self.numPlayers
-            else:
-                return (index - 1) % self.numPlayers, index
-        else:
-            return None, None
 
     def isTerminal(self):
         return self.currentGuess() == 'check'

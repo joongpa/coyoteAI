@@ -14,25 +14,24 @@ class RandomMoveMCTSPlayer(Player):
     def inputMove(self, coyoteState: CoyoteState) -> Tuple[str, bool]:
         peek = False
         root = Node(coyoteState)
-        if self.peeks > 0:
-            peek = True
-            self.peeks -= 1
-            root = Node(coyoteState.peekNextState(self.playerIndex))
-        else:
-            root = Node(coyoteState)
+        if self.peeks > 0 and not coyoteState.peeks[self.playerIndex]:
+            if coyoteState.currentGuess() and coyoteState.countPossibleSums(self.playerIndex, int(coyoteState.currentGuess())) > 0.15:
+                peek = True
+                self.peeks -= 1
+                root = Node(coyoteState.peekNextState(self.playerIndex))
         for _ in range(self.sampleLimit):
             node = self.select(root)
             score = self.rollout(node.state)
             node.backPropagate(score)
         
-        action, node = self.bestMove(root, 0)
+        action, node = self.bestMove(root, 1)
         print(self.name(), ' chose ', action)
         return action, peek
         
     def select(self, node: Node):
         while not node.isTerminal:
             if node.isFullyExpanded:
-                _, node = self.bestMove(node, 2)
+                _, node = self.bestMove(node, 1)
             else:
                 if node.visits == 0:
                     return node
@@ -59,11 +58,11 @@ class RandomMoveMCTSPlayer(Player):
         bestMoves = []
         
         for action, child in node.children:
-            if child.state.currentPlayer() == self.playerIndex: playerCoeff = 1
-            else: playerCoeff = -1
+            if node.state.currentPlayer() == self.playerIndex: playerCoeff = 1
+            else: playerCoeff = -0.2
             
             try:
-                move_score = playerCoeff * child.totalScore / child.visits + explConst * math.sqrt(math.log(node.visits / child.visits))                                        
+                move_score = playerCoeff * child.totalScore / child.visits + explConst * math.sqrt(math.log(node.visits) / child.visits)                                      
             except:
                 move_score = float('inf')
             if move_score > maxScore:
@@ -77,19 +76,18 @@ class RandomMoveMCTSPlayer(Player):
         playerIndex = self.playerIndex
         while not state.isTerminal():
             legalActions = state.getLegalActions(playerIndex)
-            state = state.nextState(playerIndex, random.choice(legalActions))
+            # state = state.nextState(playerIndex, random.choice(legalActions))
+            if state.currentPlayer() == playerIndex or not state.currentGuess():
+                state = state.nextState(playerIndex, random.choice(legalActions))
+            else:
+                if state.countPossibleSums(playerIndex, int(state.currentGuess())) < 0.1:
+                    action = 'check'
+                else:
+                    action = str(int(state.currentGuess()) + 1)
+                state = state.nextState(playerIndex, action)
         val = self.terminalStateValue(state)
         return val
 
     def terminalStateValue(self, coyoteState: CoyoteState) -> int:
-        winner, loser = coyoteState.winnerAndLoser()
-        if self.playerIndex == winner:
-            return 1
-        elif self.playerIndex == loser:
-            return -10
-        return 0
-        # winProb = coyoteState.winLossProbability(self.playerIndex)
-        # if winProb > 0.7:
-        #     return 1
-        # else:
-        #     return -5
+        winProb = coyoteState.winLossProbability(self.playerIndex)
+        return winProb - (1 - winProb)
