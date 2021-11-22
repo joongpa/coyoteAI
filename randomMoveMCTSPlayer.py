@@ -13,8 +13,10 @@ class RandomMoveMCTSPlayer(Player):
 
     def inputMove(self, coyoteState: CoyoteState) -> Tuple[str, bool]:
         peek = False
+        root = Node(coyoteState)
         if self.peeks > 0:
             peek = True
+            self.peeks -= 1
             root = Node(coyoteState.peekNextState(self.playerIndex))
         else:
             root = Node(coyoteState)
@@ -80,8 +82,14 @@ class RandomMoveMCTSPlayer(Player):
         return val
 
     def terminalStateValue(self, coyoteState: CoyoteState) -> int:
-        winProb = coyoteState.winLossProbability(self.playerIndex)
-        if winProb > 0.7:
+        winner, loser = coyoteState.winnerAndLoser()
+        if self.playerIndex == winner:
             return 1
-        else:
-            return -5
+        elif self.playerIndex == loser:
+            return -10
+        return 0
+        # winProb = coyoteState.winLossProbability(self.playerIndex)
+        # if winProb > 0.7:
+        #     return 1
+        # else:
+        #     return -5

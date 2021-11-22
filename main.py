@@ -4,7 +4,7 @@ from randomMoveMCTSPlayer import RandomMoveMCTSPlayer
 
 player1 = HumanPlayer('Alice')
 player2 = HumanPlayer('Bob')
-player3 = RandomMoveMCTSPlayer('Mat MCTS', sampleLimit=1000)
+player3 = RandomMoveMCTSPlayer('MCTS', sampleLimit=5000)
 
 coyote = Coyote(players=[player1, player3])
 coyote.playGame()

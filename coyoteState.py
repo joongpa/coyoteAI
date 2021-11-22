@@ -149,5 +149,15 @@ class CoyoteState:
             prob = self.countPossibleSums(playerIndex, lastGuess) 
             return 1 - prob
 
+    def winnerAndLoser(self):
+        if self.isTerminal():
+            index = len(self.guesses) % self.numPlayers
+            if int(self.guesses[-2]) > self.sum:
+                return index, (index - 1) % self.numPlayers
+            else:
+                return (index - 1) % self.numPlayers, index
+        else:
+            return None, None
+
     def isTerminal(self):
         return self.currentGuess() == 'check'
