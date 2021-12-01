@@ -76,15 +76,7 @@ class RandomMoveMCTSPlayer(Player):
         playerIndex = self.playerIndex
         while not state.isTerminal():
             legalActions = state.getLegalActions(playerIndex)
-            # state = state.nextState(playerIndex, random.choice(legalActions))
-            if state.currentPlayer() == playerIndex or not state.currentGuess():
-                state = state.nextState(playerIndex, random.choice(legalActions))
-            else:
-                if state.countPossibleSums(playerIndex, int(state.currentGuess())) < 0.1:
-                    action = 'check'
-                else:
-                    action = str(int(state.currentGuess()) + 1)
-                state = state.nextState(playerIndex, action)
+            state = state.nextState(playerIndex, random.choice(legalActions))
         val = self.terminalStateValue(state)
         return val
 
