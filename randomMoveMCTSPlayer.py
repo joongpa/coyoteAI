@@ -24,14 +24,13 @@ class RandomMoveMCTSPlayer(Player):
             score = self.rollout(node.state)
             node.backPropagate(score)
         
-        action, node = self.bestMove(root, 1)
-        print(self.name(), ' chose ', action)
+        action, node = self.bestMove(root, 0)
         return action, peek
         
     def select(self, node: Node):
         while not node.isTerminal:
             if node.isFullyExpanded:
-                _, node = self.bestMove(node, 1)
+                _, node = self.bestMove(node, 10)
             else:
                 if node.visits == 0:
                     return node
@@ -42,7 +41,11 @@ class RandomMoveMCTSPlayer(Player):
     def expand(self, node: Node):
         playerIndex = self.playerIndex
         actions = node.state.getLegalActions(playerIndex)
-        for action in actions:
+        
+        for i, action in enumerate(actions):
+            if i > 10:
+                node.isFullyExpanded = True
+                break
             state = node.state.nextState(playerIndex, action)
             newNode = Node(state, node)
             
@@ -58,9 +61,12 @@ class RandomMoveMCTSPlayer(Player):
         bestMoves = []
         
         for action, child in node.children:
-            if node.state.currentPlayer() == self.playerIndex: playerCoeff = 1
-            else: playerCoeff = -0.2
-            
+            if node.state.currentPlayer() == self.playerIndex: 
+                playerCoeff = 1
+            elif node.state.currentPlayer() == (self.playerIndex + 1) % node.state.numPlayers: 
+                playerCoeff = -0.5
+            else:
+                playerCoeff = -0.3
             try:
                 move_score = playerCoeff * child.totalScore / child.visits + explConst * math.sqrt(math.log(node.visits) / child.visits)                                      
             except:
@@ -82,4 +88,14 @@ class RandomMoveMCTSPlayer(Player):
 
     def terminalStateValue(self, coyoteState: CoyoteState) -> int:
         winProb = coyoteState.winLossProbability(self.playerIndex)
-        return winProb - (1 - winProb)
+        if winProb > 0.9:
+            return 3
+        elif winProb > 0.8:
+            return 2
+        elif winProb > 0.5:
+            return 1
+        elif winProb > 0.2:
+            return -2
+        else:
+            return -5
+        # return winProb - 10 * (1 - winProb)

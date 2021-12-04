@@ -8,7 +8,7 @@ from player import Player
 
 class Coyote:
     def __init__(self, players: list):
-        self.players = players
+        self.players = list(players)
         self.eliminatedPlayers = []
         self.rounds = 0
         numPlayers = len(players)
@@ -23,18 +23,23 @@ class Coyote:
     def playGame(self):
         self.updateIndices()
         while self.state.numPlayers > 1:
-            print(f'Actual sum: {self.state.sum}')
             self.playRound()
             print(self)
         self.endGame()
+        playerDict = dict()
+        winner = self.players[0]
+        for player in self.eliminatedPlayers:
+            playerDict[player] = (player.wins, player.losses)
+        playerDict[winner] = (winner.wins, winner.losses)
+        return winner, playerDict 
 
     def playRound(self):
-        print(self.state.deck)
         roundPlaying = True
         indexCounter = self.startingPlayer
         while(roundPlaying):
             playerIndex = indexCounter % self.state.numPlayers
             action, peek = self.players[playerIndex].inputMove(self.state)
+            print(self.players[playerIndex].name(), ' chose ', action)
             prev_guess = self.state.currentGuess()
             self.state = self.state.nextState(playerIndex, action, peek)
             if self.state.isTerminal():
@@ -54,6 +59,8 @@ class Coyote:
                     print('Player', (indexCounter - 1) % self.state.numPlayers + 1, 'wins round ' + str(self.rounds + 1) + '!')
             indexCounter += 1
         self.rounds += 1
+        print(f'Actual sum: {self.state.sum}')
+        print(self.state.deck)
         self.resetState()
 
     def resetState(self):
@@ -73,7 +80,6 @@ class Coyote:
     def endGame(self):
         print('Game over')
         self.game_summary()
-        sys.exit()
 
     def __str__(self):
         s: str = ''

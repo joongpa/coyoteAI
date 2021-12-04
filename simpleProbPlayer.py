@@ -23,11 +23,8 @@ class SimpleProbPlayer(Player):
         if curGuess:
             prob = coyoteState.countPossibleSums(self.playerIndex, int(curGuess))
             if prob < self.calloutProb and canCheck:
-                print(self.name(), 'chose check')
                 return 'check', doPeek
             else:
-                print(self.name(), 'chose', int(curGuess) + 1)
                 return str(int(curGuess) + 1), doPeek
         else:
-            print(self.name(), 'chose', -15)
             return -15, doPeek

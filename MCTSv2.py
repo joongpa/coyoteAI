@@ -27,7 +27,6 @@ class MCTS_player_v2(Player):
             node.backPropagate(score)
 
         action, node = self.bestMove(root, 1)
-        print(self.name(), ' chose ', action)
         return action, peek
 
     def select(self, node: Node):
@@ -60,10 +59,12 @@ class MCTS_player_v2(Player):
         bestMoves = []
 
         for action, child in node.children:
-            if node.state.currentPlayer() == self.playerIndex:
+            if node.state.currentPlayer() == self.playerIndex: 
                 playerCoeff = 1
+            elif node.state.currentPlayer() == (self.playerIndex + 1) % node.state.numPlayers: 
+                playerCoeff = -1
             else:
-                playerCoeff = -0.2
+                playerCoeff = 0
 
             try:
                 move_score = playerCoeff * child.totalScore / child.visits + explConst * math.sqrt(

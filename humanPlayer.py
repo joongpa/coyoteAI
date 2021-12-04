@@ -21,7 +21,8 @@ class HumanPlayer(Player):
                 didPeek = False
         else:
             didPeek = True
-
+            
+        state.printFromPlayer(self.playerIndex)
         actions = state.getLegalActions(self.playerIndex)
         guess = input('Player ' + str(self.playerIndex + 1) + ', choose: ' + actions.__str__() + '\n')    
             
