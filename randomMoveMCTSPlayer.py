@@ -88,14 +88,17 @@ class RandomMoveMCTSPlayer(Player):
 
     def terminalStateValue(self, coyoteState: CoyoteState) -> int:
         winProb = coyoteState.winLossProbability(self.playerIndex)
-        if winProb > 0.9:
+        # return winProb
+        if winProb > 0.95:
+            return 10
+        elif winProb > 0.9:
             return 3
         elif winProb > 0.8:
             return 2
         elif winProb > 0.5:
             return 1
         elif winProb > 0.2:
-            return -2
-        else:
             return -5
+        else:
+            return -10
         # return winProb - 10 * (1 - winProb)

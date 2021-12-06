@@ -26,13 +26,13 @@ class MCTS_player_v2(Player):
             score = self.rollout(node.state)
             node.backPropagate(score)
 
-        action, node = self.bestMove(root, 1)
+        action, node = self.bestMove(root, 0)
         return action, peek
 
     def select(self, node: Node):
         while not node.isTerminal:
             if node.isFullyExpanded:
-                _, node = self.bestMove(node, 1)
+                _, node = self.bestMove(node, 4)
             else:
                 if node.visits == 0:
                     return node
@@ -62,9 +62,9 @@ class MCTS_player_v2(Player):
             if node.state.currentPlayer() == self.playerIndex: 
                 playerCoeff = 1
             elif node.state.currentPlayer() == (self.playerIndex + 1) % node.state.numPlayers: 
-                playerCoeff = -1
+                playerCoeff = -0.8
             else:
-                playerCoeff = 0
+                playerCoeff = -0.3
 
             try:
                 move_score = playerCoeff * child.totalScore / child.visits + explConst * math.sqrt(
@@ -106,5 +106,16 @@ class MCTS_player_v2(Player):
         return val
 
     def terminalStateValue(self, coyoteState: CoyoteState) -> int:
+        # winProb = coyoteState.winLossProbability(self.playerIndex)
+        # return winProb - (1 - winProb)
         winProb = coyoteState.winLossProbability(self.playerIndex)
-        return winProb - (1 - winProb)
+        if winProb > 0.9:
+            return 3
+        elif winProb > 0.8:
+            return 2
+        elif winProb > 0.5:
+            return 1
+        elif winProb > 0.2:
+            return -2
+        else:
+            return -5

@@ -6,14 +6,15 @@ from MCTSv2 import MCTS_player_v2
 from random import shuffle
 from collections import Counter
 
-player1 = HumanPlayer('Alice')
+player1 = HumanPlayer('Alice', lives=2)
 player2 = HumanPlayer('Bob')
-player3 = RandomMoveMCTSPlayer('MCTSv1', sampleLimit=1000)
-player4 = MCTS_player_v2('MCTSv2', sampleLimit=1000)
-player6 = SimpleProbPlayer('Simple1', calloutProb=0.1)
+player3 = RandomMoveMCTSPlayer('MCTSv1', sampleLimit=1200, lives=2)
+player3_2 = RandomMoveMCTSPlayer('MCTSv1_2', sampleLimit=1200, lives=3)
+player4 = MCTS_player_v2('MCTSv2', sampleLimit=800, lives=3)
+player6 = SimpleProbPlayer('Simple1', calloutProb=0.1, lives=2)
 player7 = SimpleProbPlayer('Simple2', calloutProb=0.1)
 
-players=[player1, player3]
+players=[player3, player1]
 playerDict = dict()
 playerWins = Counter()
 for i in range(1):
@@ -24,7 +25,7 @@ for i in range(1):
     shuffle(players)
 
     for player in players:
-        player.lives = 3
+        player.lives = 2
         player.peeks = 2
 print()
 for player, wins in playerWins.items():
