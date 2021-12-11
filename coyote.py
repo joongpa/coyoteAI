@@ -65,7 +65,7 @@ class Coyote:
 
     def resetState(self):
         numPlayers = len(self.players)
-        self.state = CoyoteState(numPlayers, self.dealCards(numPlayers))
+        self.state = CoyoteState(numPlayers, self.dealCards(numPlayers), startingPlayer=self.startingPlayer)
 
     def game_summary(self):
         winner = self.players[0]

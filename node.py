@@ -7,7 +7,7 @@ class Node:
         self.children = []
         self.parent = parent
 
-        self.isTerminal = self.state.isTerminal()
+        self.isTerminal = state.isTerminal()
         self.visits = 0
         self.totalScore = 0
         self.isFullyExpanded = False

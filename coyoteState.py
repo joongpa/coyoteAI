@@ -3,7 +3,7 @@ import random
 import itertools
 
 class CoyoteState:
-    def __init__(self, numPlayers: int, deck: list, peeks: list = None, guesses: list = None):
+    def __init__(self, numPlayers: int, deck: list, peeks: list = None, guesses: list = None, startingPlayer=0):
         self.numPlayers = numPlayers
         self.peeks = peeks if peeks else [False] * numPlayers
         self.deck = deck
@@ -12,9 +12,10 @@ class CoyoteState:
         self.guesses = guesses if guesses else []
         self.currentPlayerCanCheck = True
         self.sum = CoyoteState.calculateSum(playerCards=self.playerCards, mysteryCard=self.mysteryCard)
+        self.startingPlayer = startingPlayer
 
     def currentPlayer(self):
-        return (len(self.guesses) % self.numPlayers)
+        return ((len(self.guesses) + self.startingPlayer) % self.numPlayers)
 
     @staticmethod
     def calculateSum(playerCards: list, mysteryCard=None):
@@ -29,6 +30,7 @@ class CoyoteState:
             if playerCards[i] == Card.MYSTERY.value:
                 if mysteryCard != Card.MAX0.value:
                     sum += int(mysteryCard)
+                    maxValue = max(maxValue, int(mysteryCard))
             elif playerCards[i] == Card.MAX0.value:
                 pass
             else:
@@ -100,13 +102,15 @@ class CoyoteState:
         return newState
 
     def nextState(self, playerIndex, action, didPeek=False):
+        if self.isTerminal():
+            raise 'Cannot get successor from terminal state'
         # apply action to state, return new state without mutation to current state
         new_guesses = list(self.guesses)
         new_guesses.append(action)
         new_peeks = list(self.peeks)
         if didPeek:
             new_peeks[playerIndex] = True
-        return CoyoteState(self.numPlayers, self.deck, new_peeks, new_guesses)
+        return CoyoteState(self.numPlayers, self.deck, new_peeks, new_guesses, startingPlayer=self.startingPlayer)
 
     def currentGuess(self):
         try:
@@ -143,7 +147,7 @@ class CoyoteState:
         checkPlayer = (self.currentPlayer() - 1) % self.numPlayers
         lastGuess = int(self.guesses[-2])
         if playerIndex != guessPlayer and playerIndex != checkPlayer:
-            return 0
+            return 1 / self.numPlayers
         elif playerIndex == guessPlayer:
             prob = self.countPossibleSums(playerIndex, lastGuess) 
             return prob

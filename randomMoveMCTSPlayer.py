@@ -23,14 +23,15 @@ class RandomMoveMCTSPlayer(Player):
             node = self.select(root)
             score = self.rollout(node.state)
             node.backPropagate(score)
-        
-        action, node = self.bestMove(root, 0)
+        for action, child in root.children:
+            print(action, child.visits, child.totalScore / child.visits)
+        action, node = self.bestMove(root, 0.2)
         return action, peek
         
     def select(self, node: Node):
         while not node.isTerminal:
             if node.isFullyExpanded:
-                _, node = self.bestMove(node, 10)
+                _, node = self.bestMove(node, 2)
             else:
                 if node.visits == 0:
                     return node
@@ -39,18 +40,20 @@ class RandomMoveMCTSPlayer(Player):
         return node
 
     def expand(self, node: Node):
-        playerIndex = self.playerIndex
-        actions = node.state.getLegalActions(playerIndex)
+        actions = node.state.getLegalActions(self.playerIndex)
         
         for i, action in enumerate(actions):
-            if i > 10:
+            if i >= 10:
                 node.isFullyExpanded = True
                 break
-            state = node.state.nextState(playerIndex, action)
+            if node.state.currentPlayer() != self.playerIndex and action != 'check':
+                state = node.state.nextState(self.playerIndex, action)
+                for _ in range(node.state.numPlayers - 2):
+                    state = state.nextState(self.playerIndex, str(int(state.currentGuess()) + 1))
+            else:
+                state = node.state.nextState(self.playerIndex, action)
             newNode = Node(state, node)
-            
             node.children.append((action, newNode))
-            
             if len(actions) == len(node.children):
                 node.isFullyExpanded = True
             
@@ -58,47 +61,42 @@ class RandomMoveMCTSPlayer(Player):
 
     def bestMove(self, node: Node, explConst):
         maxScore = float('-inf')
-        bestMoves = []
+        bestMove = None
         
         for action, child in node.children:
             if node.state.currentPlayer() == self.playerIndex: 
                 playerCoeff = 1
             elif node.state.currentPlayer() == (self.playerIndex + 1) % node.state.numPlayers: 
-                playerCoeff = -0.5
+                playerCoeff = -1
             else:
-                playerCoeff = -0.3
+                playerCoeff = -0.2
             try:
-                move_score = playerCoeff * child.totalScore / child.visits + explConst * math.sqrt(math.log(node.visits) / child.visits)                                      
+                move_score = playerCoeff * child.totalScore / child.visits + (explConst * math.sqrt(math.log(node.visits) / child.visits))                                              
             except:
                 move_score = float('inf')
-            if move_score > maxScore:
+            if move_score > maxScore + 0.004:
                 maxScore = move_score
-                bestMoves = [(action, child)]
-            elif move_score == maxScore:
-                bestMoves.append((action, child))
-        return random.choice(bestMoves)
+                bestMove = (action, child)
+        return bestMove
 
     def rollout(self, state: CoyoteState):
-        playerIndex = self.playerIndex
         while not state.isTerminal():
-            legalActions = state.getLegalActions(playerIndex)
-            state = state.nextState(playerIndex, random.choice(legalActions))
+            legalActions = state.getLegalActions(self.playerIndex)
+            state = state.nextState(self.playerIndex, random.choice(legalActions))
         val = self.terminalStateValue(state)
         return val
 
     def terminalStateValue(self, coyoteState: CoyoteState) -> int:
         winProb = coyoteState.winLossProbability(self.playerIndex)
-        # return winProb
-        if winProb > 0.95:
-            return 10
-        elif winProb > 0.9:
-            return 3
-        elif winProb > 0.8:
-            return 2
-        elif winProb > 0.5:
-            return 1
-        elif winProb > 0.2:
-            return -5
-        else:
-            return -10
-        # return winProb - 10 * (1 - winProb)
+        return winProb ** 2
+
+        # if winProb > 0.9:
+        #     return 10
+        # elif winProb > 0.8:
+        #     return 5
+        # elif winProb > 0.5:
+        #     return 1
+        # elif winProb > 0.2:
+        #     return -2
+        # else:
+        #     return -10

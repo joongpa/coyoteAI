@@ -25,7 +25,8 @@ class MCTS_player_v2(Player):
             node = self.select(root)
             score = self.rollout(node.state)
             node.backPropagate(score)
-
+        # for action, child in root.children:
+        #     print(action, child.totalScore / child.visits)
         action, node = self.bestMove(root, 0)
         return action, peek
 
@@ -43,7 +44,10 @@ class MCTS_player_v2(Player):
     def expand(self, node: Node):
         playerIndex = self.playerIndex
         actions = node.state.getLegalActions(playerIndex)
-        for action in actions:
+        for i, action in enumerate(actions):
+            if i >= 10:
+                node.isFullyExpanded = True
+                break
             state = node.state.nextState(playerIndex, action)
             newNode = Node(state, node)
 
@@ -84,24 +88,20 @@ class MCTS_player_v2(Player):
             legalActions = state.getLegalActions(playerIndex)
             # state = state.nextState(playerIndex, random.choice(legalActions))
             weights = []
+            startingWeight = 1
             for action in legalActions:
-                if action != 'check':
-                    # square the difference when the value is lower than expected, else 1
-                    weight = (int(action) - state.sum)**2 if int(action) < state.sum else 1 # not sure about the state.sum here
-                    weights.append(weight)
-                else:
-                    # the other way around for check
-                    weight = (int(state.currentGuess()) - state.sum)**2 if int(state.currentGuess()) > state.sum else 1
-                    weights.append(weight)
+                weights.append(startingWeight)
+                startingWeight /= 1.1
+                # if action != 'check':
+                #     # square the difference when the value is lower than expected, else 1
+                #     # weight = (int(action) - state.sum)**2 if int(action) < state.sum else 1 # not sure about the state.sum here
+                #     weights.append(weight)
+                # else:
+                #     # the other way around for check
+                #     # weight = (int(state.currentGuess()) - state.sum)**2 if int(state.currentGuess()) > state.sum else 1
+                #     weights.append(weight)
 
-            if state.currentPlayer() == playerIndex or not state.currentGuess():
-                state = state.nextState(playerIndex, random.choices(legalActions, weights)[0])
-            else:
-                if state.countPossibleSums(playerIndex, int(state.currentGuess())) < 0.1:
-                    action = 'check'
-                else:
-                    action = random.choices(legalActions, weights)[0]
-                state = state.nextState(playerIndex, action)
+            state = state.nextState(playerIndex, random.choices(legalActions, weights, k=1)[0])
         val = self.terminalStateValue(state)
         return val
 
@@ -109,13 +109,14 @@ class MCTS_player_v2(Player):
         # winProb = coyoteState.winLossProbability(self.playerIndex)
         # return winProb - (1 - winProb)
         winProb = coyoteState.winLossProbability(self.playerIndex)
-        if winProb > 0.9:
-            return 3
-        elif winProb > 0.8:
-            return 2
-        elif winProb > 0.5:
-            return 1
-        elif winProb > 0.2:
-            return -2
-        else:
-            return -5
+        return winProb ** 4
+        # if winProb > 0.9:
+        #     return 3
+        # elif winProb > 0.8:
+        #     return 2
+        # elif winProb > 0.5:
+        #     return 1
+        # elif winProb > 0.2:
+        #     return -2
+        # else:
+        #     return -5

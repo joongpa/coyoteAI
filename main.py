@@ -8,13 +8,16 @@ from collections import Counter
 
 player1 = HumanPlayer('Alice', lives=2)
 player2 = HumanPlayer('Bob')
-player3 = RandomMoveMCTSPlayer('MCTSv1', sampleLimit=1200, lives=2)
-player3_2 = RandomMoveMCTSPlayer('MCTSv1_2', sampleLimit=1200, lives=3)
-player4 = MCTS_player_v2('MCTSv2', sampleLimit=800, lives=3)
+player3 = RandomMoveMCTSPlayer('MCTSv1', sampleLimit=1000, lives=2)
+player3_2 = RandomMoveMCTSPlayer('MCTSv1_2', sampleLimit=1200, lives=2)
+player4 = MCTS_player_v2('MCTSv2', sampleLimit=800, lives=2)
 player6 = SimpleProbPlayer('Simple1', calloutProb=0.1, lives=2)
-player7 = SimpleProbPlayer('Simple2', calloutProb=0.1)
+player7 = SimpleProbPlayer('Simple2', calloutProb=0.1, lives=2)
+player8 = SimpleProbPlayer('Simple3', calloutProb=0.1, lives=2)
+player9 = SimpleProbPlayer('Simple4', calloutProb=0.1, lives=2)
 
-players=[player3, player1]
+# players=[player3, player6, player7, player8, player9]
+players=[player3, player6]
 playerDict = dict()
 playerWins = Counter()
 for i in range(1):
